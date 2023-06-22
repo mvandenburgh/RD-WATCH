@@ -16,4 +16,6 @@ export type ModelRun = {
     max: number;
   } | null;
   bbox: GeoJSON.Polygon | null;
+  created: string;
+  expiration_time: string;
 };

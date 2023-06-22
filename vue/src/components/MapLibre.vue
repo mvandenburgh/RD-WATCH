@@ -42,13 +42,14 @@ onMounted(() => {
     map.value = markRaw(
       new Map({
         container: mapContainer.value,
-        style: style(state.timestamp,  {
+        style: style(state.timestamp, {
           groundTruthPattern: false,
           otherPattern: false,
         },
-        state.satellite,
-        state.enabledSiteObservations,
-        state.siteObsSatSettings,
+          state.satellite,
+          state.enabledSiteObservations,
+          state.siteObsSatSettings,
+          state.modelRuns.filter((m) => state.openedModelRuns.has(m.key))
         ),
         bounds: [
           [state.bbox.xmin, state.bbox.ymin],
@@ -84,7 +85,7 @@ watch([() => state.timestamp, () => state.filters, () => state.satellite,
   setFilter("observations-outline", observationFilter);
   setFilter("observations-text", observationFilter);
   map.value?.setStyle(
-  style(state.timestamp, state.filters, state.satellite, state.enabledSiteObservations, state.siteObsSatSettings),
+    style(state.timestamp, state.filters, state.satellite, state.enabledSiteObservations, state.siteObsSatSettings, state.modelRuns.filter((m) => state.openedModelRuns.has(m.key))),
   );
 });
 

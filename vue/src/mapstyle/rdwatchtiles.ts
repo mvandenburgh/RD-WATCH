@@ -8,7 +8,7 @@ import type {
   LayerSpecification,
   SourceSpecification,
 } from "maplibre-gl";
-import type { MapFilters } from "../store";
+import type { KeyedModelRun, MapFilters } from "../store";
 
 import { annotationColors, observationText, siteText } from "./annotationStyles";
 
@@ -158,6 +158,23 @@ const source: SourceSpecification = {
   maxzoom: 14,
 };
 export const sources = { rdwatchtiles: source };
+
+export const buildSourceFilter = (model_runs: KeyedModelRun[]) => {
+  const modelRunIds = model_runs.map((modelRun) => modelRun.id);
+
+  let tilesUrl = `${urlRoot}/api/vector-tile/{z}/{x}/{y}.pbf`;
+  if (modelRunIds.length) {
+    tilesUrl += modelRunIds.map((id, index) => `${index === 0 ? '?' : '&'}model_runs=${id}`).join('');
+  }
+  const source: SourceSpecification = {
+    type: "vector",
+    tiles: [tilesUrl],
+    minzoom: 0,
+    maxzoom: 14,
+  };
+  console.log(model_runs)
+  return { rdwatchtiles: source }
+}
 
 export const layers = (
   timestamp: number,

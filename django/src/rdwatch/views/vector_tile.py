@@ -1,4 +1,4 @@
-from ninja import Router
+from ninja import Query, Router, Schema
 
 from django.contrib.gis.db.models.functions import Area, Transform
 from django.db import connection
@@ -23,8 +23,23 @@ from rdwatch.models import Region, SiteEvaluation, SiteObservation
 router = Router()
 
 
+class VectorTileQueryParamsSchema(Schema):
+    class ModelRunsListSchema(Schema):
+        model_runs: list[int]
+
+    data: ModelRunsListSchema
+
+
 @router.get('/{z}/{x}/{y}.pbf')
-def vector_tile(request: HttpRequest, z: int, x: int, y: int):
+def vector_tile(
+    request: HttpRequest,
+    z: int,
+    x: int,
+    y: int,
+    query_params: VectorTileQueryParamsSchema = Query(...),  # noqa: B008
+):
+    model_run_ids = query_params.data.model_runs
+
     envelope = Func(z, x, y, function='ST_TileEnvelope')
     intersects = Q(
         Func(
@@ -42,7 +57,8 @@ def vector_tile(request: HttpRequest, z: int, x: int, y: int):
     )
 
     evaluations_queryset = (
-        SiteEvaluation.objects.filter(intersects)
+        SiteEvaluation.objects.filter(configuration_id__in=model_run_ids)
+        .filter(intersects)
         .values()
         .alias(observation_count=Count('observations'))
         .annotate(
@@ -77,7 +93,8 @@ def vector_tile(request: HttpRequest, z: int, x: int, y: int):
     ) = evaluations_queryset.query.sql_with_params()
 
     observations_queryset = (
-        SiteObservation.objects.filter(intersects)
+        SiteObservation.objects.filter(siteeval__configuration_id__in=model_run_ids)
+        .filter(intersects)
         .values()
         .annotate(
             id=F('pk'),
@@ -113,7 +130,8 @@ def vector_tile(request: HttpRequest, z: int, x: int, y: int):
     ) = observations_queryset.query.sql_with_params()
 
     regions_queryset = (
-        Region.objects.filter(intersects)
+        Region.objects.filter(evaluations__configuration_id__in=model_run_ids)
+        .filter(intersects)
         .values()
         .annotate(
             id=F('pk'),
