@@ -1,8 +1,6 @@
 name: CD
 on:
   push:
-    branches:
-      - "main"
 concurrency:
   # Only run the latest workflow.
   # If a build is already happening, cancel it to avoid a race
