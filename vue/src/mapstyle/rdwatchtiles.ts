@@ -182,7 +182,7 @@ export const buildRegionFilter = (filters: MapFilters): FilterSpecification => {
   return filter;
 };
 
-const urlRoot = `${location.protocol}//${location.host}`;
+const urlRoot = import.meta.env.VITE_VECTOR_TILE_SERVER_URL || `${location.protocol}//${location.host}`;
 
 const buildObservationThick = (
   filters: MapFilters,
@@ -257,7 +257,7 @@ export const buildSourceFilter = (modelRunIds: string[], randomKey='') => {
     const source = `vectorTileSource_${id}`;
     results[source] = {
       type: "vector",
-      tiles: [`${urlRoot}${ApiService.getApiPrefix()}/model-runs/${id}/vector-tile/{z}/{x}/{y}.pbf${randomKey}/`],
+      tiles: [`${urlRoot}/${ApiService.isScoring() ? 'scoring/' : ''}tile.pbf?modelRunId=${id}&z={z}&x={x}&y={y}${randomKey}/`],
       minzoom: 0,
       maxzoom: 14,
     };

@@ -27,6 +27,23 @@
       "action": {
         "share": "/app/vue/dist/$uri"
       }
+    },
+    {
+      "match": {
+        "uri": "/service"
+      },
+      "action": {
+        "return": 301,
+        "location": "/service/"
+      }
+    },
+    {
+      "match": {
+        "uri": "/service/*"
+      },
+      "action": {
+        "pass": "applications/rdwatch_vector_tiles"
+      }
     }
   ],
   "applications": {
@@ -42,7 +59,20 @@
         "timeout": 120,
         "requests": 5000
       }
-    }
+    },
+    "rdwatch_vector_tiles": {
+      "type": "external",
+      "working_directory": "/app/services/vector_tiles",
+      "executable": "/usr/bin/env",
+      "arguments": [
+          "node",
+          "--loader",
+          "unit-http/loader.mjs",
+          "--require",
+          "unit-http/loader",
+          "app.mjs"
+      ]
+  }
   },
   "settings": {
     "http": {

@@ -21,11 +21,43 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-
     volumes:
       - ./django:/app/django
     ports:
       - 8000:8000
+    depends_on:
+      - postgresql
+      - rabbitmq
+      - redis
+      - minio
+
+  django_vector_tiles:
+    build:
+      dockerfile: Dockerfile
+      target: dev
+    command: [
+      "poetry", "run",
+      "--directory", "/app/django",
+      "/app/django/src/manage.py",
+      "runserver", "0.0.0.0:8001"
+    ]
+    env_file:
+      - .env
+      - ./dev/.env.docker-compose
+    environment:
+      RDWATCH_POSTGRESQL_URI: "postgresql://rdwatch:secretkey@postgresql:5432/rdwatch"
+      RDWATCH_REDIS_URI: "redis://redis:6379"
+      RDWATCH_CELERY_BROKER_URL: amqp://rdwatch:secretkey@rabbitmq:5672/
+      RDWATCH_ADDITIONAL_APPS: "vector_tiles,vector_tiles_scoring"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    volumes:
+      - ./django:/app/django
+    ports:
+      - 8001:8001
     depends_on:
       - postgresql
       - rabbitmq

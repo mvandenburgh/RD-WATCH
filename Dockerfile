@@ -7,8 +7,11 @@ RUN apt-get update \
  && apt-get install --no-install-recommends --yes ca-certificates curl gnupg
 RUN echo "deb [signed-by=/usr/share/keyrings/nginx.gpg] http://packages.nginx.org/unit/ubuntu/ lunar unit" > /etc/apt/sources.list.d/unit.list \
  && echo "deb-src [signed-by=/usr/share/keyrings/nginx.gpg] http://packages.nginx.org/unit/ubuntu/ lunar unit" >> /etc/apt/sources.list.d/unit.list
+RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+RUN echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
 RUN apt-get update \
  && apt-get install --no-install-recommends --yes \
+      build-essential \
       libproj25 \
       libgdal32 \
       netcat-openbsd \
@@ -16,7 +19,9 @@ RUN apt-get update \
       python3-pip \
       python3.11-venv \
       tzdata \
+      nodejs \
       unit \
+      unit-dev \
       unit-python3.11 \
  && rm -rf /var/lib/apt/lists/* \
  && mkdir /run/unit \
@@ -28,6 +33,7 @@ RUN python3 -m venv /poetry/venvs/rdwatch
 ENV PATH="/poetry/venvs/rdwatch/bin:$PATH"
 ENV VIRTUAL_ENV=/poetry/venvs/rdwatch
 RUN $VIRTUAL_ENV/bin/python -m pip install poetry==1.6.1
+RUN npm install -g --unsafe-perm unit-http
 WORKDIR /app
 EXPOSE 80
 ENTRYPOINT [ "/docker-entrypoint.sh" ]
@@ -45,12 +51,9 @@ FROM base as builder
 COPY docker/keyrings/nodesource.gpg /usr/share/keyrings/nodesource.gpg
 RUN apt-get update \
  && apt-get install --no-install-recommends --yes \
-      build-essential \
       git \
       libgdal-dev \
       libpq-dev \
-      nodejs \
-      npm \
       python3-dev \
  && rm -rf /var/lib/apt/lists/* \
  && poetry config installer.parallel true
@@ -105,6 +108,13 @@ COPY django/src/manage.py /app/django/src/manage.py
 RUN chmod -R u=rX,g=rX,o= .
 
 
+FROM builder AS services-dist
+WORKDIR /app/services
+COPY services /app/services
+RUN npm --prefix vector_tiles install
+RUN chmod -R u=rX,g=rX,o= .
+
+
 # Final image
 FROM base
 COPY --from=django-builder \
@@ -119,3 +129,7 @@ COPY --from=vue-dist \
      --chown=unit:unit \
      /app/vue/dist \
      /app/vue/dist
+COPY --from=services-dist \
+     --chown=unit:unit \
+     /app/services \
+     /app/services

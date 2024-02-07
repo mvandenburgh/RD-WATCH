@@ -5,12 +5,14 @@ from django.urls import include, path
 
 urlpatterns = [
     path('api/', include('rdwatch.urls')),
+    path('service/vector-tile/', include('vector_tiles.urls')),
     path('admin/', admin.site.urls),
 ]
 
 # Conditionally add the scoring URLs if the scoring app is installed
 if 'rdwatch_scoring' in apps.app_configs.keys():
     urlpatterns.append(path('api/scoring/', include('rdwatch_scoring.urls')))
+    path('service/vector-tile/scoring/', include('vector_tiles_scoring.urls')),
 
 if settings.DEBUG:
     try:

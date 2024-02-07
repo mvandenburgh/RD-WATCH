@@ -33,6 +33,10 @@ export default ({ mode}) => {
             target: `http://${devHost}:8000`,
             xfwd: true,
           },
+          "/vector-tile": {
+            target: `http://${devHost}:8001`,
+            xfwd: true,
+          },
         },
         strictPort: true,
       },

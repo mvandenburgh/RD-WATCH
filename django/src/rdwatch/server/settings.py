@@ -42,6 +42,9 @@ class BaseConfiguration(Configuration):
         ]
         if 'RDWATCH_POSTGRESQL_SCORING_URI' in os.environ:
             base_applications.append('rdwatch_scoring')
+        if 'RDWATCH_ADDITIONAL_APPS' in os.environ:
+            additional_apps = os.environ['RDWATCH_ADDITIONAL_APPS'].split(',')
+            base_applications.extend(additional_apps)
         return base_applications
 
     MIDDLEWARE = [
