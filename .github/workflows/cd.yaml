@@ -2,7 +2,7 @@ name: CD
 on:
   push:
     branches:
-      - "main"
+      - "refactor-app-resonant"
   release:
     types:
       - published
