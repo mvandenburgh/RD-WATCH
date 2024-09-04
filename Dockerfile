@@ -1,12 +1,8 @@
 # Base runtime environment for rdwatch
-FROM python:3.11.9 AS base
+FROM unit:python3.12 AS base
 COPY docker/nginx.json /usr/local/etc/unit/config.json
 COPY docker/docker-entrypoint.sh /docker-entrypoint.sh
 COPY docker/keyrings/nginx.gpg /usr/share/keyrings/nginx.gpg
-RUN apt-get update \
- && apt-get install --no-install-recommends --yes ca-certificates curl gnupg
-RUN echo "deb [signed-by=/usr/share/keyrings/nginx.gpg] https://packages.nginx.org/unit/debian/ bookworm unit" > /etc/apt/sources.list.d/unit.list \
- && echo "deb-src [signed-by=/usr/share/keyrings/nginx.gpg] https://packages.nginx.org/unit/debian/ bookworm unit" >> /etc/apt/sources.list.d/unit.list
 RUN apt-get update \
  && apt-get install --no-install-recommends --yes \
       libproj25 \
@@ -14,10 +10,7 @@ RUN apt-get update \
       netcat-openbsd \
       python3-cachecontrol \
       python3-pip \
-      python3.11-venv \
       tzdata \
-      unit \
-      unit-python3.11 \
       wget \
       # opencv dependencies
       ffmpeg \
